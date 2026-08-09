@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retos Diarios | SkillQuiz</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Fuente moderna Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header / Stats Bar -->
+    <header class="top-bar">
+      <div class="brand">⚡ SkillQuiz</div>
+      <div class="stats">
+        <div class="stat-badge streak-badge" id="streak-badge"> 🔥 <span id="streak-count">0</span></div>
+        <div class="stat-badge score-badge" id="score-badge">🏆 <span id="score-count">0</span></div>
+      </div>
+    </header>
+
+    <!-- Menú de Categorías -->
+    <nav class="categories-nav" id="categories-nav">
+      <button class="cat-btn active" data-cat="all">🔥 Todo</button>
+      <button class="cat-btn" data-cat="math">🧩 Lógica</button>
+      <button class="cat-btn" data-cat="finance">💸 Finanzas</button>
+      <button class="cat-btn" data-cat="tech">💻 Digital</button>
+      <button class="cat-btn" data-cat="general">🌍 Cultura</button>
+    </nav>
+
+    <!-- Contenedor de la Tarjeta del Quiz -->
+    <main class="quiz-card" id="quiz-card">
+      <div class="card-header">
+        <span class="category-tag" id="card-category">Categoría</span>
+        <span class="timer-badge">⏱️ <span id="time-left">120</span>s</span>
+      </div>
+
+      <h2 class="question-text" id="question-text">Cargando reto...</h2>
+
+      <div class="options-grid" id="options-grid">
+        <!-- Opciones generadas dinámicamente por JS -->
+      </div>
+
+      <div class="feedback-box hidden" id="feedback-box">
+        <p id="feedback-text"></p>
+        <button class="btn-next" id="btn-next">Siguiente reto ➔</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
