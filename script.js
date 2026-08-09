@@ -1,4 +1,3 @@
-// Configuración extraída de tu panel de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBzSXyBWraJ0w4SokENSqEUFHzyN9ZvcWI",
   authDomain: "skillquiz-app.firebaseapp.com",
@@ -9,108 +8,55 @@ const firebaseConfig = {
   measurementId: "G-PV86W1HL6M"
 };
 
-// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Banco de Preguntas de Prueba
-const questionsData = [
+// Banco Inicial de Preguntas
+const baseQuestions = [
   {
-    id: 1,
     category: "math",
     categoryLabel: "Lógica / Matemáticas",
     question: "Si 3 gatos cazan 3 ratones en 3 minutos, ¿cuántos gatos se necesitan para cazar 100 ratones en 100 minutos?",
     options: ["100 gatos", "3 gatos", "33 gatos", "1 gato"],
     correct: 1,
-    explanation: "¡Correcto! Los mismos 3 gatos cazan 1 ratón cada 3 minutos. En 100 minutos, esos 3 gatos seguirán cazando al mismo ritmo."
+    explanation: "¡Correcto! Los mismos 3 gatos cazan 1 ratón cada 3 minutos."
   },
   {
-    id: 2,
-    category: "math",
-    categoryLabel: "Lógica / Matemáticas",
-    question: "¿Cuál es el número que sigue en la secuencia: 2, 4, 8, 16, ...?",
-    options: ["24", "32", "64", "20"],
-    correct: 1,
-    explanation: "¡Exacto! Cada número es el doble del anterior."
-  },
-  {
-    id: 3,
     category: "finance",
     categoryLabel: "Finanzas para Jóvenes",
-    question: "¿Qué significa el concepto de 'Interés Compuesto'?",
-    options: [
-      "Un impuesto cobrado por compras con tarjeta de débito",
-      "Interés que se calcula sobre el capital inicial + los intereses acumulados",
-      "Un préstamo entre amigos sin comisiones",
-      "La tasa fija que cobran los bancos por retiro en cajeros"
-    ],
-    correct: 1,
-    explanation: "¡Muy bien! El interés compuesto hace crecer tu dinero exponencialmente porque genera 'intereses sobre los intereses'."
-  },
-  {
-    id: 4,
-    category: "finance",
-    categoryLabel: "Finanzas para Jóvenes",
-    question: "¿Qué porcentaje aproximado de tus ingresos se recomienda destinar al ahorro en la regla 50/30/20?",
+    question: "¿Qué porcentaje de tus ingresos se sugiere ahorrar según la regla 50/30/20?",
     options: ["50%", "30%", "20%", "10%"],
     correct: 2,
-    explanation: "¡De una! La regla 50/30/20 sugiere: 50% Necesidades, 30% Deseos y 20% Ahorro."
+    explanation: "¡Exacto! 50% Necesidades, 30% Deseos y 20% Ahorro."
   },
   {
-    id: 5,
     category: "tech",
     categoryLabel: "Habilidades Digitales",
-    question: "¿Qué es el 'Phishing' en ciberseguridad?",
+    question: "¿Qué es el 'Phishing'?",
     options: [
-      "Una técnica para optimizar la velocidad de navegación",
-      "Un método de estafa para engañarte y obtener tus claves o datos confidenciales",
-      "Crear aplicaciones web usando solo CSS y HTML",
-      "Comprimir archivos pesados para enviarlos por correo"
+      "Optimizar la velocidad de la red",
+      "Engañarte mediante sitios falsos para robar tus claves",
+      "Un lenguaje de programación moderno",
+      "Comprimir archivos grandes"
     ],
     correct: 1,
-    explanation: "¡Ojo ahí! El phishing usa correos o páginas falsas para robar credenciales."
-  },
-  {
-    id: 6,
-    category: "tech",
-    categoryLabel: "Habilidades Digitales",
-    question: "¿Cuál de estas herramientas es un control de versiones de código muy usado en programación?",
-    options: ["Git", "Docker", "Figma", "Node.js"],
-    correct: 0,
-    explanation: "¡Eso es! Git te permite rastrear cambios en el código y colaborar con otros desarrolladores."
-  },
-  {
-    id: 7,
-    category: "general",
-    categoryLabel: "Cultura General",
-    question: "¿Quién es considerado el creador del sistema operativo Linux?",
-    options: ["Steve Jobs", "Bill Gates", "Linus Torvalds", "Mark Zuckerberg"],
-    correct: 2,
-    explanation: "¡Correcto! Linus Torvalds creó el núcleo de Linux en 1991 como proyecto de código abierto."
-  },
-  {
-    id: 8,
-    category: "general",
-    categoryLabel: "Cultura General",
-    question: "¿Qué gas de la atmósfera terrestre absorbe la mayor parte de los rayos ultravioleta (UV) del Sol?",
-    options: ["Dióxido de carbono", "Ozono", "Nitrógeno", "Argón"],
-    correct: 1,
-    explanation: "¡Exacto! La capa de ozono actúa como un escudo protector esencial para la vida."
+    explanation: "¡Cuidado! El phishing simula páginas reales para robar datos."
   }
 ];
 
-// Estado global de la aplicación
+// Estado global
 let currentUser = null;
 let currentCategory = "all";
 let filteredQuestions = [];
 let currentIndex = 0;
 let score = 0;
 let streak = 0;
+let nickname = "Jugador";
 let timer = null;
 let timeLeft = 120;
 
-// Referencias al DOM
+// Elementos DOM
 const questionText = document.getElementById("question-text");
 const optionsGrid = document.getElementById("options-grid");
 const cardCategory = document.getElementById("card-category");
@@ -122,43 +68,44 @@ const streakCount = document.getElementById("streak-count");
 const timeLeftDisplay = document.getElementById("time-left");
 const catButtons = document.querySelectorAll(".cat-btn");
 const btnLogin = document.getElementById("btn-login");
+const nicknameInput = document.getElementById("nickname-input");
+const btnSaveNickname = document.getElementById("btn-save-nickname");
 
-// Inicialización de la App
 function initApp() {
   setupAuthListener();
   setupCategoryListeners();
   btnNext.addEventListener("click", nextQuestion);
   btnLogin.addEventListener("click", handleAuthAction);
+  btnSaveNickname.addEventListener("click", saveNickname);
   filterQuestions("all");
+  listenToLeaderboard();
 }
 
-// Escuchar cambios de autenticación en Firebase
+// Autenticación en Firebase
 function setupAuthListener() {
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       currentUser = user;
-      btnLogin.textContent = user.isAnonymous ? "👤 Anónimo" : "🚪 Salir";
+      btnLogin.textContent = user.isAnonymous ? "🔑 Regístrate aquí para guardar" : "🚪 Salir";
       await loadUserDataFromCloud(user.uid);
     } else {
       currentUser = null;
-      btnLogin.textContent = "🔑 Entrar";
-      // Iniciar sesión anónima de forma transparente
-      auth.signInAnonymously().catch(err => console.error("Error al autenticar de forma anónima:", err));
+      btnLogin.textContent = "🔑 Regístrate aquí para guardar";
+      auth.signInAnonymously().catch(err => console.error(err));
     }
   });
 }
 
-// Iniciar sesión con Google o Salir
 function handleAuthAction() {
   if (currentUser && !currentUser.isAnonymous) {
     auth.signOut();
   } else {
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(err => console.error("Error al iniciar sesión con Google:", err));
+    auth.signInWithPopup(provider).catch(err => console.error(err));
   }
 }
 
-// Cargar progreso desde Firestore
+// Cargar datos de Firestore
 async function loadUserDataFromCloud(uid) {
   try {
     const docRef = db.collection("users").doc(uid);
@@ -168,42 +115,74 @@ async function loadUserDataFromCloud(uid) {
       const data = doc.data();
       score = data.score || 0;
       streak = data.streak || 0;
+      nickname = data.nickname || "Jugador";
+      nicknameInput.value = nickname;
     } else {
       await docRef.set({
         score: 0,
         streak: 0,
+        nickname: nickname,
         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
       });
-      score = 0;
-      streak = 0;
     }
     updateStatsUI();
   } catch (error) {
-    console.error("Error al consultar datos en la nube:", error);
+    console.error("Error al cargar datos:", error);
   }
 }
 
-// Guardar datos en Firestore
+// Guardar datos
 async function saveProgressToCloud() {
   if (!currentUser) return;
-
   try {
     await db.collection("users").doc(currentUser.uid).set({
       score: score,
       streak: streak,
+      nickname: nickname,
       lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
   } catch (error) {
-    console.error("Error al guardar en la nube:", error);
+    console.error("Error al guardar:", error);
   }
 }
 
-// Filtrar preguntas por categoría
+function saveNickname() {
+  const val = nicknameInput.value.trim();
+  if (val) {
+    nickname = val;
+    saveProgressToCloud();
+    alert("¡Apodo guardado correctamente!");
+  }
+}
+
+// Generador de Preguntas Infinitas
+function generateInfiniteQuestion() {
+  const a = Math.floor(Math.random() * 30) + 5;
+  const b = Math.floor(Math.random() * 30) + 5;
+  const correctVal = a + b;
+  
+  const options = [
+    correctVal.toString(),
+    (correctVal + 2).toString(),
+    (correctVal - 3).toString(),
+    (correctVal + 5).toString()
+  ].sort(() => Math.random() - 0.5);
+
+  return {
+    category: "math",
+    categoryLabel: "Lógica / Matemáticas",
+    question: `¿Cuánto es ${a} + ${b}?`,
+    options: options,
+    correct: options.indexOf(correctVal.toString()),
+    explanation: `Resultado: ${a} + ${b} = ${correctVal}.`
+  };
+}
+
 function filterQuestions(cat) {
   currentCategory = cat;
   filteredQuestions = cat === "all" 
-    ? [...questionsData] 
-    : questionsData.filter(q => q.category === cat);
+    ? [...baseQuestions] 
+    : baseQuestions.filter(q => q.category === cat);
   
   filteredQuestions.sort(() => Math.random() - 0.5);
   currentIndex = 0;
@@ -223,12 +202,12 @@ function setupCategoryListeners() {
 function loadQuestion() {
   resetState();
 
-  if (filteredQuestions.length === 0) {
-    questionText.textContent = "No hay preguntas en esta categoría.";
-    return;
+  // Si se agotan las preguntas, generar infinitas de forma matemática
+  let currentQ = filteredQuestions[currentIndex];
+  if (!currentQ) {
+    currentQ = generateInfiniteQuestion();
   }
 
-  const currentQ = filteredQuestions[currentIndex];
   cardCategory.textContent = currentQ.categoryLabel;
   questionText.textContent = currentQ.question;
 
@@ -236,7 +215,7 @@ function loadQuestion() {
     const btn = document.createElement("button");
     btn.classList.add("option-btn");
     btn.textContent = optText;
-    btn.addEventListener("click", () => handleSelectAnswer(index, currentQ.correct));
+    btn.addEventListener("click", () => handleSelectAnswer(index, currentQ.correct, currentQ));
     optionsGrid.appendChild(btn);
   });
 
@@ -258,15 +237,13 @@ function startTimer() {
     if (timeLeft <= 0) {
       clearInterval(timer);
       disableOptions();
-      showFeedback(false, "⏰ ¡Tiempo agotado! Intenta el siguiente reto.");
-      streak = 0;
-      updateStatsUI();
-      saveProgressToCloud();
+      const currentQ = filteredQuestions[currentIndex] || generateInfiniteQuestion();
+      handleFailure(currentQ);
     }
   }, 1000);
 }
 
-function handleSelectAnswer(selectedIndex, correctIndex) {
+function handleSelectAnswer(selectedIndex, correctIndex, questionObj) {
   clearInterval(timer);
   disableOptions();
 
@@ -275,19 +252,31 @@ function handleSelectAnswer(selectedIndex, correctIndex) {
 
   buttons[selectedIndex].classList.add(isCorrect ? "correct" : "incorrect");
   
-  if (!isCorrect) {
-    buttons[correctIndex].classList.add("correct");
-    streak = 0;
-  } else {
+  if (isCorrect) {
     score += 10;
     streak += 1;
+    showFeedback(true, questionObj.explanation);
+  } else {
+    buttons[correctIndex].classList.add("correct");
+    handleFailure(questionObj);
   }
 
   updateStatsUI();
-  saveProgressToCloud(); // Guarda puntos y racha en la nube
+  saveProgressToCloud();
+}
+
+function handleFailure(questionObj) {
+  const previousStreak = streak;
+  streak = 0;
+  const correctAnswerText = questionObj.options[questionObj.correct];
   
-  const currentQ = filteredQuestions[currentIndex];
-  showFeedback(isCorrect, currentQ.explanation);
+  const msg = previousStreak > 0 
+    ? ` Has perdido tu racha de ${previousStreak} acierto(s). La respuesta correcta era: "${correctAnswerText}". Así que aprendan.`
+    : ` Respuesta incorrecta. La respuesta correcta era: "${correctAnswerText}". Así que aprendan.`;
+
+  showFeedback(false, msg);
+  updateStatsUI();
+  saveProgressToCloud();
 }
 
 function disableOptions() {
@@ -307,9 +296,32 @@ function updateStatsUI() {
 }
 
 function nextQuestion() {
-  currentIndex = (currentIndex + 1) % filteredQuestions.length;
+  currentIndex++;
   loadQuestion();
 }
 
-// Arrancar la app al cargar la página
+// Leaderboard en tiempo real
+function listenToLeaderboard() {
+  const leaderboardList = document.getElementById("leaderboard-list");
+  db.collection("users")
+    .orderBy("score", "desc")
+    .limit(5)
+    .onSnapshot((snapshot) => {
+      leaderboardList.innerHTML = "";
+      let rank = 1;
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const li = document.createElement("li");
+        li.classList.add("leaderboard-item");
+        const displayName = data.nickname || `Jugador #${rank}`;
+        li.innerHTML = `
+          <span><strong class="rank">#${rank}</strong> ${displayName}</span>
+          <span class="score">🏆 ${data.score || 0} pts</span>
+        `;
+        leaderboardList.appendChild(li);
+        rank++;
+      });
+    });
+}
+
 document.addEventListener("DOMContentLoaded", initApp);
