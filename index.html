@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Retos Diarios | SkillQuiz</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Fuente Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
@@ -13,15 +12,22 @@
 <body>
 
   <div class="app-container">
-    <!-- Header / Barra de Estado -->
+    <!-- Header / Stats Bar -->
     <header class="top-bar">
       <div class="brand">⚡ SkillQuiz</div>
       <div class="stats">
-        <button id="btn-login" class="stat-badge auth-btn">🔑 Entrar</button>
-        <div class="stat-badge streak-badge" id="streak-badge"> 🔥 <span id="streak-count">0</span></div>
-        <div class="stat-badge score-badge" id="score-badge">🏆 <span id="score-count">0</span></div>
+        <button id="btn-login" class="stat-badge auth-btn">🔑 Regístrate aquí</button>
+        <div class="stat-badge streak-badge"> 🔥 <span id="streak-count">0</span></div>
+        <div class="stat-badge score-badge">🏆 <span id="score-count">0</span></div>
       </div>
     </header>
+
+    <!-- Configuración de Apodo / Nickname -->
+    <div class="nickname-bar">
+      <label for="nickname-input">👤 Apodo:</label>
+      <input type="text" id="nickname-input" placeholder="Escribe tu apodo..." maxlength="15">
+      <button id="btn-save-nickname">Guardar</button>
+    </div>
 
     <!-- Menú de Categorías -->
     <nav class="categories-nav" id="categories-nav">
@@ -32,7 +38,7 @@
       <button class="cat-btn" data-cat="general">🌍 Cultura</button>
     </nav>
 
-    <!-- Tarjeta Principal del Quiz -->
+    <!-- Tarjeta del Quiz -->
     <main class="quiz-card" id="quiz-card">
       <div class="card-header">
         <span class="category-tag" id="card-category">Categoría</span>
@@ -41,23 +47,27 @@
 
       <h2 class="question-text" id="question-text">Cargando reto...</h2>
 
-      <div class="options-grid" id="options-grid">
-        <!-- Opciones generadas dinámicamente por JS -->
-      </div>
+      <div class="options-grid" id="options-grid"></div>
 
       <div class="feedback-box hidden" id="feedback-box">
         <p id="feedback-text"></p>
         <button class="btn-next" id="btn-next">Siguiente reto ➔</button>
       </div>
     </main>
+
+    <!-- Tabla de Posiciones Global -->
+    <section class="leaderboard-card">
+      <h3>🏆 Tabla de Posiciones</h3>
+      <ul class="leaderboard-list" id="leaderboard-list">
+        <li class="loading-item">Cargando mejores puntajes...</li>
+      </ul>
+    </section>
   </div>
 
-  <!-- SDKs de Firebase (Compatibles para JS puro sin bundlers) -->
+  <!-- Firebase Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  
-  <!-- Archivo JavaScript principal -->
   <script src="script.js"></script>
 </body>
 </html>
