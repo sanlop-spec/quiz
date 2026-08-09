@@ -1,11 +1,27 @@
-// Banco de 8 Preguntas de Ejemplo
+// Configuración extraída de tu panel de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBzSXyBWraJ0w4SokENSqEUFHzyN9ZvcWI",
+  authDomain: "skillquiz-app.firebaseapp.com",
+  projectId: "skillquiz-app",
+  storageBucket: "skillquiz-app.firebasestorage.app",
+  messagingSenderId: "283936251852",
+  appId: "1:283936251852:web:ad546d60b9853c13c48769",
+  measurementId: "G-PV86W1HL6M"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Banco de Preguntas de Prueba
 const questionsData = [
   {
     id: 1,
     category: "math",
     categoryLabel: "Lógica / Matemáticas",
     question: "Si 3 gatos cazan 3 ratones en 3 minutos, ¿cuántos gatos se necesitan para cazar 100 ratones en 100 minutos?",
-    options: ["100 gatos", "3 gatos", "33 gatos", "1 cat"],
+    options: ["100 gatos", "3 gatos", "33 gatos", "1 gato"],
     correct: 1,
     explanation: "¡Correcto! Los mismos 3 gatos cazan 1 ratón cada 3 minutos. En 100 minutos, esos 3 gatos seguirán cazando al mismo ritmo."
   },
@@ -16,7 +32,7 @@ const questionsData = [
     question: "¿Cuál es el número que sigue en la secuencia: 2, 4, 8, 16, ...?",
     options: ["24", "32", "64", "20"],
     correct: 1,
-    explanation: "¡Exacto! Cada número es el doble del anterior ($2 \\times 2 = 4$, $4 \\times 2 = 8$, $8 \\times 2 = 16$, $16 \\times 2 = 32$)."
+    explanation: "¡Exacto! Cada número es el doble del anterior."
   },
   {
     id: 3,
@@ -39,7 +55,7 @@ const questionsData = [
     question: "¿Qué porcentaje aproximado de tus ingresos se recomienda destinar al ahorro en la regla 50/30/20?",
     options: ["50%", "30%", "20%", "10%"],
     correct: 2,
-    explanation: "¡De una! La regla 50/30/20 sugiere: 50% Necesidades, 30% Deseos/Caprichos y 20% Ahorro e Inversión."
+    explanation: "¡De una! La regla 50/30/20 sugiere: 50% Necesidades, 30% Deseos y 20% Ahorro."
   },
   {
     id: 5,
@@ -53,7 +69,7 @@ const questionsData = [
       "Comprimir archivos pesados para enviarlos por correo"
     ],
     correct: 1,
-    explanation: "¡Ojo ahí! El phishing usa correos o páginas falsas que imitan a bancos o redes sociales para robar tus credenciales."
+    explanation: "¡Ojo ahí! El phishing usa correos o páginas falsas para robar credenciales."
   },
   {
     id: 6,
@@ -62,7 +78,7 @@ const questionsData = [
     question: "¿Cuál de estas herramientas es un control de versiones de código muy usado en programación?",
     options: ["Git", "Docker", "Figma", "Node.js"],
     correct: 0,
-    explanation: "¡Eso es! Git te permite rastrear cambios en el código y colaborar con otros desarrolladores sin sobrescribir trabajo."
+    explanation: "¡Eso es! Git te permite rastrear cambios en el código y colaborar con otros desarrolladores."
   },
   {
     id: 7,
@@ -71,7 +87,7 @@ const questionsData = [
     question: "¿Quién es considerado el creador del sistema operativo Linux?",
     options: ["Steve Jobs", "Bill Gates", "Linus Torvalds", "Mark Zuckerberg"],
     correct: 2,
-    explanation: "¡Correcto! Linus Torvalds creó el núcleo (kernel) de Linux en 1991 como un proyecto de código abierto."
+    explanation: "¡Correcto! Linus Torvalds creó el núcleo de Linux en 1991 como proyecto de código abierto."
   },
   {
     id: 8,
@@ -80,11 +96,12 @@ const questionsData = [
     question: "¿Qué gas de la atmósfera terrestre absorbe la mayor parte de los rayos ultravioleta (UV) del Sol?",
     options: ["Dióxido de carbono", "Ozono", "Nitrógeno", "Argón"],
     correct: 1,
-    explanation: "¡Exacto! La capa de ozono ($O_3$) actúa como un escudo protector esencial para la vida en la Tierra."
+    explanation: "¡Exacto! La capa de ozono actúa como un escudo protector esencial para la vida."
   }
 ];
 
-// Estado de la App
+// Estado global de la aplicación
+let currentUser = null;
 let currentCategory = "all";
 let filteredQuestions = [];
 let currentIndex = 0;
@@ -104,46 +121,110 @@ const scoreCount = document.getElementById("score-count");
 const streakCount = document.getElementById("streak-count");
 const timeLeftDisplay = document.getElementById("time-left");
 const catButtons = document.querySelectorAll(".cat-btn");
+const btnLogin = document.getElementById("btn-login");
 
-// Inicialización
+// Inicialización de la App
 function initApp() {
-  filterQuestions("all");
+  setupAuthListener();
   setupCategoryListeners();
   btnNext.addEventListener("click", nextQuestion);
+  btnLogin.addEventListener("click", handleAuthAction);
+  filterQuestions("all");
+}
+
+// Escuchar cambios de autenticación en Firebase
+function setupAuthListener() {
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      currentUser = user;
+      btnLogin.textContent = user.isAnonymous ? "👤 Anónimo" : "🚪 Salir";
+      await loadUserDataFromCloud(user.uid);
+    } else {
+      currentUser = null;
+      btnLogin.textContent = "🔑 Entrar";
+      // Iniciar sesión anónima de forma transparente
+      auth.signInAnonymously().catch(err => console.error("Error al autenticar de forma anónima:", err));
+    }
+  });
+}
+
+// Iniciar sesión con Google o Salir
+function handleAuthAction() {
+  if (currentUser && !currentUser.isAnonymous) {
+    auth.signOut();
+  } else {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(err => console.error("Error al iniciar sesión con Google:", err));
+  }
+}
+
+// Cargar progreso desde Firestore
+async function loadUserDataFromCloud(uid) {
+  try {
+    const docRef = db.collection("users").doc(uid);
+    const doc = await docRef.get();
+
+    if (doc.exists) {
+      const data = doc.data();
+      score = data.score || 0;
+      streak = data.streak || 0;
+    } else {
+      await docRef.set({
+        score: 0,
+        streak: 0,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      score = 0;
+      streak = 0;
+    }
+    updateStatsUI();
+  } catch (error) {
+    console.error("Error al consultar datos en la nube:", error);
+  }
+}
+
+// Guardar datos en Firestore
+async function saveProgressToCloud() {
+  if (!currentUser) return;
+
+  try {
+    await db.collection("users").doc(currentUser.uid).set({
+      score: score,
+      streak: streak,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.error("Error al guardar en la nube:", error);
+  }
 }
 
 // Filtrar preguntas por categoría
 function filterQuestions(cat) {
   currentCategory = cat;
-  if (cat === "all") {
-    filteredQuestions = [...questionsData];
-  } else {
-    filteredQuestions = questionsData.filter(q => q.category === cat);
-  }
-  // Mezclar preguntas aleatoriamente
+  filteredQuestions = cat === "all" 
+    ? [...questionsData] 
+    : questionsData.filter(q => q.category === cat);
+  
   filteredQuestions.sort(() => Math.random() - 0.5);
   currentIndex = 0;
   loadQuestion();
 }
 
-// Configurar menú de categorías
 function setupCategoryListeners() {
   catButtons.forEach(btn => {
     btn.addEventListener("click", (e) => {
       catButtons.forEach(b => b.classList.remove("active"));
       e.target.classList.add("active");
-      const selectedCat = e.target.getAttribute("data-cat");
-      filterQuestions(selectedCat);
+      filterQuestions(e.target.getAttribute("data-cat"));
     });
   });
 }
 
-// Cargar la pregunta actual en la interfaz
 function loadQuestion() {
   resetState();
 
   if (filteredQuestions.length === 0) {
-    questionText.textContent = "No hay preguntas disponibles en esta categoría.";
+    questionText.textContent = "No hay preguntas en esta categoría.";
     return;
   }
 
@@ -162,7 +243,6 @@ function loadQuestion() {
   startTimer();
 }
 
-// Resetear interfaz para la siguiente pregunta
 function resetState() {
   clearInterval(timer);
   timeLeft = 120;
@@ -171,7 +251,6 @@ function resetState() {
   feedbackBox.classList.add("hidden");
 }
 
-// Temporizador de 2 minutos por reto
 function startTimer() {
   timer = setInterval(() => {
     timeLeft--;
@@ -179,14 +258,14 @@ function startTimer() {
     if (timeLeft <= 0) {
       clearInterval(timer);
       disableOptions();
-      showFeedback(false, "⏰ ¡Se acabó el tiempo! Intenta responder más rápido el próximo reto.");
+      showFeedback(false, "⏰ ¡Tiempo agotado! Intenta el siguiente reto.");
       streak = 0;
-      updateStats();
+      updateStatsUI();
+      saveProgressToCloud();
     }
   }, 1000);
 }
 
-// Manejar la selección de respuesta
 function handleSelectAnswer(selectedIndex, correctIndex) {
   clearInterval(timer);
   disableOptions();
@@ -204,7 +283,9 @@ function handleSelectAnswer(selectedIndex, correctIndex) {
     streak += 1;
   }
 
-  updateStats();
+  updateStatsUI();
+  saveProgressToCloud(); // Guarda puntos y racha en la nube
+  
   const currentQ = filteredQuestions[currentIndex];
   showFeedback(isCorrect, currentQ.explanation);
 }
@@ -214,24 +295,21 @@ function disableOptions() {
   buttons.forEach(btn => btn.disabled = true);
 }
 
-// Mostrar retroalimentación
 function showFeedback(isCorrect, text) {
   feedbackText.textContent = text;
   feedbackText.style.color = isCorrect ? "#34d399" : "#f87171";
   feedbackBox.classList.remove("hidden");
 }
 
-// Actualizar marcadores
-function updateStats() {
+function updateStatsUI() {
   scoreCount.textContent = score;
   streakCount.textContent = streak;
 }
 
-// Avanzar a la siguiente pregunta
 function nextQuestion() {
   currentIndex = (currentIndex + 1) % filteredQuestions.length;
   loadQuestion();
 }
 
-// Arrancar la app al cargar el documento
+// Arrancar la app al cargar la página
 document.addEventListener("DOMContentLoaded", initApp);
