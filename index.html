@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Retos Diarios | SkillQuiz</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Fuente moderna Google Fonts -->
+  <!-- Fuente Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
@@ -13,10 +13,11 @@
 <body>
 
   <div class="app-container">
-    <!-- Header / Stats Bar -->
+    <!-- Header / Barra de Estado -->
     <header class="top-bar">
       <div class="brand">⚡ SkillQuiz</div>
       <div class="stats">
+        <button id="btn-login" class="stat-badge auth-btn">🔑 Entrar</button>
         <div class="stat-badge streak-badge" id="streak-badge"> 🔥 <span id="streak-count">0</span></div>
         <div class="stat-badge score-badge" id="score-badge">🏆 <span id="score-count">0</span></div>
       </div>
@@ -31,7 +32,7 @@
       <button class="cat-btn" data-cat="general">🌍 Cultura</button>
     </nav>
 
-    <!-- Contenedor de la Tarjeta del Quiz -->
+    <!-- Tarjeta Principal del Quiz -->
     <main class="quiz-card" id="quiz-card">
       <div class="card-header">
         <span class="category-tag" id="card-category">Categoría</span>
@@ -51,6 +52,12 @@
     </main>
   </div>
 
+  <!-- SDKs de Firebase (Compatibles para JS puro sin bundlers) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
+  <!-- Archivo JavaScript principal -->
   <script src="script.js"></script>
 </body>
 </html>
